@@ -2,10 +2,10 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.models.models import Film
 from src.services.film import FilmService, get_film_service
+from src.models.models import Person, Film
+from src.services.person import PersonService, get_person_service
 from fastapi_pagination import Page, paginate
-
 
 router = APIRouter()
 
@@ -22,27 +22,31 @@ router = APIRouter()
 # `/api/v1/genres/<uuid:UUID>/ Данные по конкретному жанру.
 # /api/v1/films... Популярные фильмы в жанре.
 
-@router.get('/search', response_model=Page[Film])
-async def films_search(query: str = "", film_service: FilmService = Depends(get_film_service)) -> Page[Film]:
-    films = await film_service.search_by_query(query)
-    if not films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
-    res = [h['_source'] for h in films['hits']['hits']]
-    result = []
-    for t in res:
-        f = Film(id=t['id'], title=t['title'],
-                 imdb_rating=t['imdb_rating'],
-                 description=t['description'])
-        result.append(f)
-    return paginate(result)
+
+@router.get('/search', response_model=Page[Person])
+async def person_search(query: str = "*", person_service: PersonService = Depends(get_person_service)) -> Page[Person]:
+    persons = await person_service.search_by_query(query)
+    if not persons:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='persons not found')
+    res = [h['_source'] for h in persons['hits']['hits']]
+    return paginate(res)
 
 
-@router.get('/', response_model=Page[Film])
-async def films(sort: str = "", genre: str = "",
-                        film_service: FilmService = Depends(get_film_service)) -> Page[Film]:
-    films = await film_service.search_by_genre(sort, genre)
-    if not films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
+@router.get('/{uuid}', response_model=Person)
+async def person_details(uuid: str, person_service: PersonService = Depends(get_person_service)) -> Person:
+    person = await person_service.search(uuid)
+    if not person:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
+    return person
+
+
+@router.get('/{uuid}/film', response_model=Page[Film])
+async def person_film(uuid: str,
+                      person_service: PersonService = Depends(get_person_service),
+                      film_service: FilmService = Depends(get_film_service)) -> Page[Film]:
+    person = await person_service.search(uuid)
+    ids = person.actor + person.director + person.writer
+    films = await film_service.search_by_ids(ids)
     res = [h['_source'] for h in films['hits']['hits']]
     result = []
     for t in res:
@@ -57,10 +61,4 @@ async def films(sort: str = "", genre: str = "",
     return paginate(result)
 
 
-@router.get('/{film_id}', response_model=Film)
-async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> Film:
-    film = await film_service.get_by_id(film_id)
-    if not film:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
-    return film
 
