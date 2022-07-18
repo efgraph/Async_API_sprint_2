@@ -18,7 +18,6 @@ class PostgresExtractor:
         self.state = state
 
     def extract_query(self, query, last_time):
-        self.cursor.execute(query, (last_time, last_time,))
+        self.cursor.execute(query, (last_time,))
         data = self.cursor.fetchall()
-        print("upload count %s" % len(data))
         return data

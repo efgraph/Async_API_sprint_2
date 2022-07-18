@@ -38,10 +38,10 @@ query_film_work = """SELECT fw.id,
                 LEFT JOIN genre g ON g.id = gfw.genre_id
                 GROUP BY
                     1,2,3,4,5    
-                HAVING (fw.modified::time > %s::time) AND (fw.modified::date >= %s::date)"""
+                HAVING (fw.modified::timestamp without time zone > %s::timestamp without time zone)"""
 
 
-query_genre = """SELECT id, name from genre WHERE (modified::time > %s::time) AND (modified::date >= %s::date)"""
+query_genre = """SELECT id, name from genre WHERE (modified::timestamp without time zone > %s::timestamp without time zone)"""
 
 query_person = """SELECT 
                         p.id, 
@@ -63,4 +63,4 @@ query_person = """SELECT
                         LEFT JOIN film_work fw ON fw.id = pfw.film_work_id
                         GROUP BY
                             1,2
-                        HAVING (p.modified::time > %s::time) AND (p.modified::date >= %s::date)"""
+                        HAVING (p.modified::timestamp without time zone > %s::timestamp without time zone)"""

@@ -7,3 +7,5 @@ data
 */.pytest_cache/
 __pycache__/
  *.pyc
+static/admin
+static/rest_framework

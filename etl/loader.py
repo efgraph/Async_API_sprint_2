@@ -33,13 +33,13 @@ class ESLoader(AbstractEsLoader):
         if response.status_code != http.HTTPStatus.OK:
             raise Exception('es schema is not set')
 
-    def load_index_data(self, data, name, trasformer):
+    def load_index_data(self, data, name, transformer):
         if not data:
             return
 
         transformed_data = []
         for row in data:
-            transformed_data.append(trasformer(row))  # TransformerUtil.transform_genre(row)
+            transformed_data.append(transformer(row))
 
         prepared_query = []
         for row in transformed_data:
@@ -48,7 +48,6 @@ class ESLoader(AbstractEsLoader):
                 json.dumps(row)
             ])
         str_query = '\n'.join(prepared_query) + '\n'
-
         response = requests.post(
             urljoin(Settings().elastic_conn.es_uri, '_bulk'),
             data=str_query,

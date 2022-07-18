@@ -61,6 +61,7 @@ def retry(exception_to_check, delay=3, backoff=2):
 
     return deco_retry
 
+
 @retry(Exception, delay=2, backoff=2)
 def run():
     settings = Settings()
@@ -68,11 +69,10 @@ def run():
         storage = JsonFileStorage(settings.etl_state.state_file)
         state = State(storage)
         etl(pg_conn, state)
-        time.sleep(3)
+        time.sleep(5)
         run_postman_tests(state)
         while True:
             etl(pg_conn, state)
-            print('is running...')
             sleep(3)
 
 

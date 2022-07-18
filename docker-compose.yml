@@ -37,13 +37,13 @@ services:
   etl:
     build: ./etl
     environment:
-      - FILE_STATE_PATH=./storage/local_state.json
+      - FILE_STATE_PATH=./local_storage/local_state.json
       - ELASTIC_URI=http://es:9200/
     env_file:
       - ./docker/pg-variables.env
     command: /opt/etl/docker-entrypoint.sh
     volumes:
-      - ./etl/storage/:/opt/etl/storage/
+      - ./etl/local_storage/:/opt/etl/local_storage/
     depends_on:
       - es
       - service
@@ -53,13 +53,6 @@ services:
     restart: always
     ports:
       - '6379:6379'
-
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
-    ports:
-      - '9200:9200'
-    environment:
-      - discovery.type=single-node
 
   search_api:
     build: ./search_api
@@ -75,3 +68,11 @@ services:
       - cache
     ports:
       - '8000:8000'
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
+    ports:
+      - '9200:9200'
+    environment:
+      - discovery.type=single-node
+      - cluster.routing.allocation.disk.threshold_enabled=false
