@@ -1,5 +1,6 @@
+import json
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -27,21 +28,48 @@ class FilmService:
 
         return film
 
-    async def search_by_ids(self, ids):
-        body = {"query":{"ids":{"values": ids}}}
-        return await self.elastic.search(index="movies", body=body, size=10000)
+    async def search_by_ids(self, ids, page, size):
+        key = ":".join(map(str, ["movies", ids, page, size]))
+        films = await self._films_from_cache(key)
+        if not films:
+            body = {"query": {"ids": {"values": ids}}}
+            result = await self.elastic.search(index="movies", body=body, from_=page * size, size=size)
+            source = [hit['_source'] for hit in result['hits']['hits']]
+            films = [Film.to_film(f) for f in source]
+            if not films:
+                return None
+            await self._put_films_to_cache(key, films)
+        return films
 
-    async def search_by_query(self, query):
-        body = {"query":{"query_string":{"query": query}}}
-        return await self.elastic.search(index="movies", body=body, size=10000)
+    async def search_by_query(self, query, page, size):
+        key = ":".join(map(str, ["movies", query, page, size]))
+        films = await self._films_from_cache(key)
+        if not films:
+            body = {"query": {"query_string": {"query": query}}}
+            result = await self.elastic.search(index="movies", body=body, from_=page * size, size=size)
+            source = [hit['_source'] for hit in result['hits']['hits']]
+            films = [Film.to_film(f) for f in source]
+            if not films:
+                return None
+            await self._put_films_to_cache(key, films)
+        return films
 
-    async def search_by_genre(self, sort, genre):
-        body = {"query": {"match_all": {}}}
-        if sort:
-            body["sort"] = [{sort:{"order":"desc"}}]
-        if genre:
-            body["query"] = {"bool":{"must":[{"match":{"genre": genre}}]}}
-        return await self.elastic.search(index="movies", body=body, size=10000)
+    async def get_all(self, sort, genre, page, size):
+        key = ":".join(map(str, ["movies", sort, genre, page, size]))
+        films = await self._films_from_cache(key)
+        if not films:
+            body = {"query": {"match_all": {}}}
+            if sort:
+                body["sort"] = [{sort: {"order": "desc"}}]
+            if genre:
+                body["query"] = {"bool": {"must": [{"match": {"genre": genre}}]}}
+            result = await self.elastic.search(index="movies", body=body, from_=page * size, size=size)
+            source = [hit['_source'] for hit in result['hits']['hits']]
+            films = [Film.to_film(f) for f in source]
+            if not films:
+                return None
+            await self._put_films_to_cache(key, films)
+        return films
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
@@ -57,8 +85,18 @@ class FilmService:
         film = Film.parse_raw(data)
         return film
 
+    async def _films_from_cache(self, key: str) -> List[Film]:
+        data = await self.redis.get(key)
+        if not data:
+            return None
+        persons = [Film.parse_raw(f) for f in json.loads(data)]
+        return persons
+
     async def _put_film_to_cache(self, film: Film):
         await self.redis.set(film.id, film.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS)
+
+    async def _put_films_to_cache(self, key: str, films: List[Film]):
+        await self.redis.set(key, json.dumps([f.json() for f in films]), expire=FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

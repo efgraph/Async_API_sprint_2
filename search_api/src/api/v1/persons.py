@@ -1,35 +1,25 @@
 from http import HTTPStatus
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from services.film import FilmService, get_film_service
 from models.models import Person, Film
 from services.person import PersonService, get_person_service
-from fastapi_pagination import Page, paginate
 
 router = APIRouter()
 
 
-# /api/v1/films?sort=-imdb_rating
-# /api/v1/films?sort=-imdb_rating&filter[genre]=<comedy-uuid> Жанр и популярные фильмы в нём. Это просто фильтрация.
-# /api/v1/genres/ Список жанров.
-# /api/v1/films/search/ Поиск по фильмам.
-# /api/v1/persons/search/ Поиск по персонам.
-# /api/v1/films/<uuid:UUID>/ Полная информация по фильму.
-# /api/v1/films? Похожие фильмы.
-# /api/v1/persons/<uuid:UUID>/ Данные по персоне.
-# /api/v1/persons/<uuid:UUID>/film/ Фильмы по персоне.
-# `/api/v1/genres/<uuid:UUID>/ Данные по конкретному жанру.
-# /api/v1/films... Популярные фильмы в жанре.
-
-
-@router.get('/search', response_model=Page[Person])
-async def person_search(query: str = "*", person_service: PersonService = Depends(get_person_service)) -> Page[Person]:
-    persons = await person_service.search_by_query(query)
+@router.get('/search', response_model=List[Person])
+async def person_search(query: str = "*", page: int = Query(0, alias="page[number]"),
+                        size: int = Query(50, alias="page[size]"),
+                        person_service: PersonService = Depends(get_person_service)) -> List[Person]:
+    if size * page + size > 10000:
+        raise HTTPException(status_code=HTTPStatus.NOT_ACCEPTABLE, detail='Result window is too large')
+    persons = await person_service.search_by_query(query, page, size)
     if not persons:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='persons not found')
-    res = [h['_source'] for h in persons['hits']['hits']]
-    return paginate(res)
+    return persons
 
 
 @router.get('/{uuid}', response_model=Person)
@@ -40,25 +30,16 @@ async def person_details(uuid: str, person_service: PersonService = Depends(get_
     return person
 
 
-@router.get('/{uuid}/film', response_model=Page[Film])
-async def person_film(uuid: str,
+@router.get('/{uuid}/film', response_model=List[Film])
+async def person_film(uuid: str, page: int = Query(0, alias="page[number]"),
+                      size: int = Query(50, alias="page[size]"),
                       person_service: PersonService = Depends(get_person_service),
-                      film_service: FilmService = Depends(get_film_service)) -> Page[Film]:
+                      film_service: FilmService = Depends(get_film_service)) -> List[Film]:
+    if size * page + size > 10000:
+        raise HTTPException(status_code=HTTPStatus.NOT_ACCEPTABLE, detail='Result window is too large')
     person = await person_service.search(uuid)
+    if not person:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
     ids = person.actor + person.director + person.writer
-    films = await film_service.search_by_ids(ids)
-    res = [h['_source'] for h in films['hits']['hits']]
-    result = []
-    for t in res:
-        f = Film(id=t['id'],
-                 title=t['title'],
-                 imdb_rating=t['imdb_rating'],
-                 description=t['description'],
-                 actors=t['actors'],
-                 writers=t['writers'],
-                 directors=t['director'])
-        result.append(f)
-    return paginate(result)
-
-
-
+    films = await film_service.search_by_ids(ids, page, size)
+    return films

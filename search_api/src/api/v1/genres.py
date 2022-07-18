@@ -1,38 +1,23 @@
 from http import HTTPStatus
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi_pagination import Page, paginate
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 
 from models.models import Genre
 from services.genre import GenreService, get_genre_service
 
 router = APIRouter()
 
-# /api/v1/films?sort=-imdb_rating
-# /api/v1/films?sort=-imdb_rating&filter[genre]=<comedy-uuid> Жанр и популярные фильмы в нём. Это просто фильтрация.
-# /api/v1/genres/ Список жанров.
-# /api/v1/films/search/ Поиск по фильмам.
-# /api/v1/persons/search/ Поиск по персонам.
-# /api/v1/films/<uuid:UUID>/ Полная информация по фильму.
-# /api/v1/films? Похожие фильмы.
-# /api/v1/persons/<uuid:UUID>/ Данные по персоне.
-# /api/v1/persons/<uuid:UUID>/film/ Фильмы по персоне.
-# `/api/v1/genres/<uuid:UUID>/ Данные по конкретному жанру.
-# /api/v1/films... Популярные фильмы в жанре.
 
-
-@router.get('/', response_model=Page[Genre])
-async def genres(genre_service: GenreService = Depends(get_genre_service)) -> Page[Genre]:
-    genres = await genre_service.search_by_query('*')
+@router.get('/', response_model=List[Genre])
+async def genres(page: int = Query(0, alias="page[number]"), size: int = Query(50, alias="page[size]"),
+                 genre_service: GenreService = Depends(get_genre_service)) -> List[Genre]:
+    if size * page + size > 10000:
+        raise HTTPException(status_code=HTTPStatus.NOT_ACCEPTABLE, detail='Result window is too large')
+    genres = await genre_service.search_by_query('*', page, size)
     if not genres:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='genres not found')
-    res = [h['_source'] for h in genres['hits']['hits']]
-    result = []
-    for t in res:
-        f = Genre(id=t['id'], name=t['genre'])
-        result.append(f)
-
-    return paginate(result)
+    return genres
 
 
 @router.get('/{uuid}', response_model=Genre)

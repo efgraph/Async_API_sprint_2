@@ -13,6 +13,10 @@ class Genre(BaseModel):
     id: str
     name: str
 
+    @staticmethod
+    def to_genre(data):
+        return Genre(id=data['id'], name=data['genre'])
+
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
@@ -25,6 +29,16 @@ class Person(BaseModel):
     writer: List[str] = []
     director: List[str] = []
 
+    @staticmethod
+    def to_person(data):
+        return Person(
+            id=data['id'],
+            full_name=data['full_name'],
+            actor=data['actor'],
+            director=data['director'],
+            writer=data['writer']
+            )
+
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps
@@ -35,9 +49,21 @@ class Film(BaseModel):
     title: str
     imdb_rating: Optional[str]
     description: Optional[str]
+    genre: List = []
     actors: List = []
     directors: List = []
     writers: List = []
+
+    @staticmethod
+    def to_film(data):
+        return Film(id=data['id'],
+                    title=data['title'],
+                    imdb_rating=data['imdb_rating'],
+                    description=data['description'],
+                    genre=data['genre'],
+                    actors=data['actors'],
+                    directors=data['director'],
+                    writers=data['writers'])
 
     class Config:
         json_loads = orjson.loads

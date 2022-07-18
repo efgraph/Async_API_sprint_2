@@ -1,5 +1,6 @@
+import json
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -26,9 +27,18 @@ class PersonService:
             await self._put_person_to_cache(person)
         return person
 
-    async def search_by_query(self, query):
-        body = {"query":{"query_string":{"query": query}}}
-        return await self.elastic.search(index="persons", body=body, size=10000)
+    async def search_by_query(self, query, page, size):
+        key = ":".join(map(str, ["persons", query, page, size]))
+        persons = await self._persons_from_cache(key)
+        if not persons:
+            body = {"query": {"query_string": {"query": query}}}
+            result = await self.elastic.search(index="persons", body=body, from_=page * size, size=size)
+            source = [hit['_source'] for hit in result['hits']['hits']]
+            persons = [Person.to_person(p) for p in source]
+            if not persons:
+                return None
+            await self._put_persons_to_cache(key, persons)
+        return persons
 
     async def search(self, uuid):
         person = await self._get_person_from_elastic(uuid)
@@ -39,7 +49,6 @@ class PersonService:
             doc = await self.elastic.get('persons', person_id)
         except NotFoundError:
             return None
-        print(doc)
         return Person(**doc['_source'])
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
@@ -49,8 +58,19 @@ class PersonService:
         person = Person.parse_raw(data)
         return person
 
+    async def _persons_from_cache(self, key: str) -> List[Person]:
+        data = await self.redis.get(key)
+        if not data:
+            return None
+        persons = [Person.parse_raw(p) for p in json.loads(data)]
+        return persons
+
     async def _put_person_to_cache(self, person: Person):
         await self.redis.set(person.id, person.json(), expire=PERSON_CACHE_EXPIRE_IN_SECONDS)
+
+    async def _put_persons_to_cache(self, key: str, persons: List[Person]):
+        await self.redis.set(key, json.dumps([p.json() for p in persons]), expire=PERSON_CACHE_EXPIRE_IN_SECONDS)
+
 
 @lru_cache()
 def get_person_service(
