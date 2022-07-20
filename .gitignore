@@ -9,3 +9,4 @@ __pycache__/
  *.pyc
 static/admin
 static/rest_framework
+log

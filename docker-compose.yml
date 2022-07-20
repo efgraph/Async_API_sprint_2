@@ -6,8 +6,6 @@ services:
     restart: always
     env_file:
       - ./docker/pg-variables.env
-    ports:
-      - '5432:5432'
 
   service:
     build: ./app
@@ -28,11 +26,20 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx:/etc/nginx/conf.d:ro
+      - ./log:/var/log/nginx
       - ./static:/var/www
     depends_on:
       - service
     ports:
       - "80:80"
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
+    expose:
+      - "9200"
+    environment:
+      - discovery.type=single-node
+      - cluster.routing.allocation.disk.threshold_enabled=false
 
   etl:
     build: ./etl
@@ -47,12 +54,11 @@ services:
     depends_on:
       - es
       - service
+      - postgres
 
   cache:
     image: redis:6.2-alpine
     restart: always
-    ports:
-      - '6379:6379'
 
   search_api:
     build: ./search_api
@@ -66,13 +72,5 @@ services:
       - etl
       - es
       - cache
-    ports:
-      - '8000:8000'
 
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
-    ports:
-      - '9200:9200'
-    environment:
-      - discovery.type=single-node
-      - cluster.routing.allocation.disk.threshold_enabled=false
+

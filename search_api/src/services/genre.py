@@ -10,8 +10,6 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from models.models import Genre
 
-GENRE_CACHE_EXPIRE_IN_SECONDS = 60 * 5
-
 
 class GenreService:
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
@@ -28,7 +26,7 @@ class GenreService:
         return genre
 
     async def search_by_query(self, query, page, size):
-        key = ":".join(map(str, ["genres", query, page, size]))
+        key = ":".join(map(str, [query, page, size]))
         genres = await self._genres_from_cache(key)
         if not genres:
             body = {"query": {"query_string": {"query": query}}}
@@ -49,24 +47,24 @@ class GenreService:
         return Genre.to_genre(res)
 
     async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
-        data = await self.redis.get(genre_id)
-        if not data:
+        data = await self.redis.hmget("genres", genre_id)
+        if data in [None, [None]]:
             return None
-        genre = Genre.parse_raw(data)
+        genre = Genre.parse_raw(data[0])
         return genre
 
     async def _genres_from_cache(self, key: str) -> List[Genre]:
-        data = await self.redis.get(key)
-        if not data:
+        data = await self.redis.hmget("genres", key)
+        if data in [None, [None]]:
             return None
-        genres = [Genre.parse_raw(g) for g in json.loads(data)]
+        genres = [Genre.parse_raw(g) for g in json.loads(data[0])]
         return genres
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(genre.id, genre.json(), expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.hmset("genres", genre.id, genre.json())
 
     async def _put_genres_to_cache(self, key: str, genres: List[Genre]):
-        await self.redis.set(key, json.dumps([g.json() for g in genres]), expire=GENRE_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.hmset("genres", key, json.dumps([g.json() for g in genres]))
 
 
 @lru_cache()

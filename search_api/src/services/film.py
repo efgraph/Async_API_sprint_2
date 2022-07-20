@@ -10,8 +10,6 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from models.models import Film
 
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
-
 
 class FilmService:
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
@@ -28,8 +26,8 @@ class FilmService:
 
         return film
 
-    async def search_by_ids(self, ids, page, size):
-        key = ":".join(map(str, ["movies", ids, page, size]))
+    async def search_by_ids(self, person_id, ids, page, size):
+        key = ":".join(map(str, [person_id, page, size]))
         films = await self._films_from_cache(key)
         if not films:
             body = {"query": {"ids": {"values": ids}}}
@@ -42,7 +40,7 @@ class FilmService:
         return films
 
     async def search_by_query(self, query, page, size):
-        key = ":".join(map(str, ["movies", query, page, size]))
+        key = ":".join(map(str, [query, page, size]))
         films = await self._films_from_cache(key)
         if not films:
             body = {"query": {"query_string": {"query": query}}}
@@ -55,7 +53,7 @@ class FilmService:
         return films
 
     async def get_all(self, sort, genre, page, size):
-        key = ":".join(map(str, ["movies", sort, genre, page, size]))
+        key = ":".join(map(str, [sort, genre, page, size]))
         films = await self._films_from_cache(key)
         if not films:
             body = {"query": {"match_all": {}}}
@@ -79,24 +77,24 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
-        if not data:
+        data = await self.redis.hmget("movies", film_id)
+        if data in [None, [None]]:
             return None
-        film = Film.parse_raw(data)
+        film = Film.parse_raw(data[0])
         return film
 
     async def _films_from_cache(self, key: str) -> List[Film]:
-        data = await self.redis.get(key)
-        if not data:
+        data = await self.redis.hmget("movies", key)
+        if data in [None, [None]]:
             return None
-        persons = [Film.parse_raw(f) for f in json.loads(data)]
+        persons = [Film.parse_raw(f) for f in json.loads(data[0])]
         return persons
 
     async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(film.id, film.json(), expire=FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.hmset("movies", film.id, film.json())
 
     async def _put_films_to_cache(self, key: str, films: List[Film]):
-        await self.redis.set(key, json.dumps([f.json() for f in films]), expire=FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.hmset("movies", key, json.dumps([f.json() for f in films]))
 
 
 @lru_cache()

@@ -9,7 +9,13 @@ def orjson_dumps(v, *, default):
     return orjson.dumps(v, default=default).decode()
 
 
-class Genre(BaseModel):
+class BaseOrjsonModel(BaseModel):
+    class Config:
+        json_loads = orjson.loads
+        json_dumps = orjson_dumps
+
+
+class Genre(BaseOrjsonModel):
     id: str
     name: str
 
@@ -17,12 +23,11 @@ class Genre(BaseModel):
     def to_genre(data):
         return Genre(id=data['id'], name=data['genre'])
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
+    class Config(BaseOrjsonModel.Config):
+        pass
 
 
-class Person(BaseModel):
+class Person(BaseOrjsonModel):
     id: str
     full_name: str
     actor: List[str] = []
@@ -39,12 +44,11 @@ class Person(BaseModel):
             writer=data['writer']
             )
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
+    class Config(BaseOrjsonModel.Config):
+        pass
 
 
-class Film(BaseModel):
+class Film(BaseOrjsonModel):
     id: str
     title: str
     imdb_rating: Optional[str]
@@ -65,6 +69,5 @@ class Film(BaseModel):
                     directors=data['director'],
                     writers=data['writers'])
 
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
+    class Config(BaseOrjsonModel.Config):
+        pass

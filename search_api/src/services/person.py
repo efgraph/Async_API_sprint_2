@@ -10,8 +10,6 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from models.models import Person
 
-PERSON_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
-
 
 class PersonService:
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
@@ -28,7 +26,7 @@ class PersonService:
         return person
 
     async def search_by_query(self, query, page, size):
-        key = ":".join(map(str, ["persons", query, page, size]))
+        key = ":".join(map(str, [query, page, size]))
         persons = await self._persons_from_cache(key)
         if not persons:
             body = {"query": {"query_string": {"query": query}}}
@@ -52,24 +50,24 @@ class PersonService:
         return Person(**doc['_source'])
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
-        data = await self.redis.get(person_id)
-        if not data:
+        data = await self.redis.hmget("persons", person_id)
+        if data in [None, [None]]:
             return None
-        person = Person.parse_raw(data)
+        person = Person.parse_raw(data[0])
         return person
 
     async def _persons_from_cache(self, key: str) -> List[Person]:
-        data = await self.redis.get(key)
-        if not data:
+        data = await self.redis.hmget("persons", key)
+        if data in [None, [None]]:
             return None
-        persons = [Person.parse_raw(p) for p in json.loads(data)]
+        persons = [Person.parse_raw(p) for p in json.loads(data[0])]
         return persons
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(person.id, person.json(), expire=PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.hmset("persons", person.id, person.json())
 
     async def _put_persons_to_cache(self, key: str, persons: List[Person]):
-        await self.redis.set(key, json.dumps([p.json() for p in persons]), expire=PERSON_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.hmset("persons", key, json.dumps([p.json() for p in persons]))
 
 
 @lru_cache()
