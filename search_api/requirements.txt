@@ -3,6 +3,7 @@ elasticsearch[async]==7.9.1
 fastapi==0.79.0
 orjson==3.7.8
 pydantic==1.9.0
-uvicorn==0.12.2
+uvicorn[standard]==0.18.2
+gunicorn==20.1.0
 uwsgi==2.0.20
 httptools==0.4.0
