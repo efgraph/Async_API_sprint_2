@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -11,10 +10,10 @@ from services.person import PersonService, get_person_service
 router = APIRouter()
 
 
-@router.get('/search', response_model=List[Person], description = 'Поиск по персонам')
+@router.get('/search', response_model=list[Person], description = 'Поиск по персонам')
 async def person_search(query: str = "*", page: int = Query(0, alias="page[number]", ge=0),
                         size: int = Query(50, alias="page[size]", ge=0),
-                        person_service: PersonService = Depends(get_person_service)) -> List[Person]:
+                        person_service: PersonService = Depends(get_person_service)) -> list[Person]:
     persons = await person_service.search_by_query(query, page, size)
     if not persons:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=PERSONS_NOT_FOUND)
@@ -29,11 +28,11 @@ async def person_details(uuid: str, person_service: PersonService = Depends(get_
     return person
 
 
-@router.get('/{uuid}/film', response_model=List[Film], description = 'Фильмы по персоне')
+@router.get('/{uuid}/film', response_model=list[Film], description = 'Фильмы по персоне')
 async def person_film(uuid: str, page: int = Query(0, alias="page[number]", ge=0),
                       size: int = Query(50, alias="page[size]", ge=0),
                       person_service: PersonService = Depends(get_person_service),
-                      film_service: FilmService = Depends(get_film_service)) -> List[Film]:
+                      film_service: FilmService = Depends(get_film_service)) -> list[Film]:
     person = await person_service.search(uuid)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=FILMS_NOT_FOUND)

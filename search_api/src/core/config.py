@@ -2,6 +2,7 @@ import os
 from logging import config as logging_config
 
 from pydantic.env_settings import BaseSettings
+from pydantic.fields import Field
 
 from .logger import LOGGING
 
@@ -11,11 +12,11 @@ PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
 
 
 class Settings(BaseSettings):
-    REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
-    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+    redis_host: str = Field('127.0.0.1', env='redis_host')
+    redis_port: int = Field(6379, env='redis_port')
 
-    ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
-    ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
+    elastic_host: str = Field('127.0.0.1', env='elastic_host')
+    elastic_port: int = Field(9200, env='elastic_port')
 
 
 settings = Settings()

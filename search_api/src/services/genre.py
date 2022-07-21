@@ -1,6 +1,5 @@
 import json
 from functools import lru_cache
-from typing import Optional, List
 
 from aioredis import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -16,7 +15,7 @@ class GenreService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, genre_id: str) -> Optional[Genre]:
+    async def get_by_id(self, genre_id: str) -> Genre | None:
         genre = await self._genre_from_cache(genre_id)
         if not genre:
             genre = await self._get_genre_from_elastic(genre_id)
@@ -32,28 +31,28 @@ class GenreService:
             body = {"query": {"query_string": {"query": query}}}
             result = await self.elastic.search(index="genres", body=body, from_=page * size, size=size)
             source = [hit['_source'] for hit in result['hits']['hits']]
-            genres = [Genre.to_genre(g) for g in source]
+            genres = [Genre(**g) for g in source]
             if not genres:
                 return None
             await self._put_genres_to_cache(key, genres)
         return genres
 
-    async def _get_genre_from_elastic(self, genre_id: str) -> Optional[Genre]:
+    async def _get_genre_from_elastic(self, genre_id: str) -> Genre | None:
         try:
             doc = await self.elastic.get('genres', genre_id)
         except NotFoundError:
             return None
         res = doc['_source']
-        return Genre.to_genre(res)
+        return Genre(**res)
 
-    async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
+    async def _genre_from_cache(self, genre_id: str) -> Genre | None:
         data = await self.redis.hmget("genres", genre_id)
         if data in [None, [None]]:
             return None
         genre = Genre.parse_raw(data[0])
         return genre
 
-    async def _genres_from_cache(self, key: str) -> List[Genre]:
+    async def _genres_from_cache(self, key: str) -> list[Genre]:
         data = await self.redis.hmget("genres", key)
         if data in [None, [None]]:
             return None
@@ -63,7 +62,7 @@ class GenreService:
     async def _put_genre_to_cache(self, genre: Genre):
         await self.redis.hmset("genres", genre.id, genre.json())
 
-    async def _put_genres_to_cache(self, key: str, genres: List[Genre]):
+    async def _put_genres_to_cache(self, key: str, genres: list[Genre]):
         await self.redis.hmset("genres", key, json.dumps([g.json() for g in genres]))
 
 

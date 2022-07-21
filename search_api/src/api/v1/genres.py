@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 
@@ -10,9 +9,9 @@ from services.genre import GenreService, get_genre_service
 router = APIRouter()
 
 
-@router.get('/', response_model=List[Genre], description = 'Список жанров')
+@router.get('/', response_model=list[Genre], description = 'Список жанров')
 async def genres(page: int = Query(0, alias="page[number]", ge=0), size: int = Query(50, alias="page[size]", ge=0),
-                 genre_service: GenreService = Depends(get_genre_service)) -> List[Genre]:
+                 genre_service: GenreService = Depends(get_genre_service)) -> list[Genre]:
     genres = await genre_service.search_by_query('*', page, size)
     if not genres:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=GENRES_NOT_FOUND)
