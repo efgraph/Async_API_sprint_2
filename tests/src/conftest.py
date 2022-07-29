@@ -1,12 +1,10 @@
 import asyncio
 import json
+from multidict import CIMultiDictProxy
 from dataclasses import dataclass
 from pathlib import Path
 
 import aiohttp
-
-from multidict import CIMultiDictProxy
-
 import pytest
 
 from settings.urljoin import urljoin

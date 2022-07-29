@@ -23,7 +23,7 @@ async def person_search(query: str = "*", page: int = Query(0, alias="page[numbe
 
 @router.get('/{uuid}', response_model=Person, description = 'Данные по персоне')
 async def person_details(uuid: str, person_service: PersonService = Depends(get_person_service)) -> Person:
-    person = await person_service.search(uuid)
+    person = await person_service.get_by_id(uuid)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=PERSON_NOT_FOUND)
     return person
@@ -34,7 +34,7 @@ async def person_film(uuid: str, page: int = Query(0, alias="page[number]", ge=0
                       size: int = Query(50, alias="page[size]", ge=0),
                       person_service: PersonService = Depends(get_person_service),
                       film_service: FilmService = Depends(get_film_service)) -> list[Film]:
-    person = await person_service.search(uuid)
+    person = await person_service.get_by_id(uuid)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=FILMS_NOT_FOUND)
     ids = person.actor + person.director + person.writer

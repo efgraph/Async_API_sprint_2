@@ -20,20 +20,20 @@ class GenreServiceImpl(GenreService):
         self.es_data_source = es_data_source
 
     async def get_by_id(self, genre_id: str) -> Genre | None:
-        genre = await self.redis_data_source.genre_from_cache(genre_id)
+        genre = await self.redis_data_source.get_one('genres', genre_id, lambda data: Genre.parse_raw(data))
         if not genre:
-            genre = await self.es_data_source.get_genre_by_id(genre_id)
+            genre = await self.es_data_source.get_one('genres', genre_id, lambda data: Genre(**data))
             if not genre:
                 return None
-            await self.redis_data_source.put_genre_to_cache(genre)
+            await self.redis_data_source.put_one('genres', genre)
         return genre
 
     async def search_by_query(self, query, page, size) -> list[Genre] | None:
         key = ":".join(map(str, [query, page, size]))
-        genres = await self.redis_data_source.genres_from_cache(key)
+        genres = await self.redis_data_source.get_all('genres', key, lambda data : [Genre.parse_raw(g) for g in data])
         if not genres:
-            genres = await self.es_data_source.get_genres_by_query(query, page, size)
+            genres = await self.es_data_source.get_all_by_query('genres', query, page, size, lambda data: [Genre(**g) for g in data])
             if not genres:
                 return None
-            await self.redis_data_source.put_genres_to_cache(key, genres)
+            await self.redis_data_source.put_all('genres', key, genres)
         return genres

@@ -1,4 +1,4 @@
-### Студенчиский проект yandex-praktikum команды №8
+### Студенчeский проект yandex-praktikum команды №8
 
 ### Основые компоненты
 
@@ -28,8 +28,7 @@ http://localhost/api/openapi
 **Перезапуск проекта**
 
 1. docker-compose down
-2. docker image prune --all 
-3. Удалить папку etl/local_storage
+2. docker image prune --all
 
 ### Ссылка на репозиторий
 

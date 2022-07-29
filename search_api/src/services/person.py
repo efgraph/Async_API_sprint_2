@@ -13,10 +13,6 @@ class PersonService(ABC):
     async def search_by_query(self, query, page, size) -> list[Person] | None:
         pass
 
-    @abstractmethod
-    async def search(self, uuid) -> Person | None:
-        pass
-
 
 class PersonServiceImpl(PersonService):
     def __init__(self, redis_data_source: RedisDataSource, es_data_source: ESDataSource):
@@ -24,24 +20,21 @@ class PersonServiceImpl(PersonService):
         self.es_data_source = es_data_source
 
     async def get_by_id(self, person_id: str) -> Person | None:
-        person = await self.redis_data_source.person_from_cache(person_id)
+        person = await self.redis_data_source.get_one('persons', person_id, lambda data: Person.parse_raw(data))
         if not person:
-            person = await self.es_data_source.get_person_from_elastic(person_id)
+            person = await self.es_data_source.get_one('persons', person_id, lambda data: Person(**data))
             if not person:
                 return None
-            await self.redis_data_source.put_person_to_cache(person)
+            await self.redis_data_source.put_one('persons', person)
         return person
 
     async def search_by_query(self, query, page, size) -> list[Person] | None:
         key = ":".join(map(str, [query, page, size]))
-        persons = await self.redis_data_source.persons_from_cache(key)
+        persons = await self.redis_data_source.get_all('persons', key, lambda data: [Person.parse_raw(p) for p in data])
         if not persons:
-            persons = await self.es_data_source.get_persons_by_query(query, page, size)
+            persons = await self.es_data_source.get_all_by_query('persons', query, page, size, lambda data: [Person(**p) for p in data])
             if not persons:
                 return None
-            await self.redis_data_source.put_persons_to_cache(key, persons)
+            await self.redis_data_source.put_all('persons', key, persons)
         return persons
 
-    async def search(self, uuid) -> Person | None:
-        person = await self.es_data_source.get_person_from_elastic(uuid)
-        return person

@@ -17,6 +17,10 @@ class FilmService(ABC):
     async def search_by_query(self, query, page, size) -> list[Film] | None:
         pass
 
+    @abstractmethod
+    async def get_all(self, sort, genre, page, size) -> list[Film] | None:
+        pass
+
 
 class FilmServiceImpl(FilmService):
     def __init__(self, redis_data_source: RedisDataSource, es_data_source: ESDataSource):
@@ -24,41 +28,41 @@ class FilmServiceImpl(FilmService):
         self.es_data_source = es_data_source
 
     async def get_by_id(self, film_id: str) -> Film | None:
-        film = await self.redis_data_source.film_from_cache(film_id)
+        film = await self.redis_data_source.get_one('movies', film_id, lambda data: Film.parse_raw(data))
         if not film:
-            film = await self.es_data_source.get_film_from_elastic(film_id)
+            film = await self.es_data_source.get_one('movies', film_id, lambda data: Film(**data))
             if not film:
                 return None
-            await self.redis_data_source.put_film_to_cache(film)
+            await self.redis_data_source.put_one('movies', film)
 
         return film
 
     async def search_by_ids(self, person_id, ids, page, size) -> list[Film] | None:
         key = ":".join(map(str, [person_id, page, size]))
-        films = await self.redis_data_source.films_from_cache(key)
+        films = await self.redis_data_source.get_all('movies', key, lambda data: [Film.parse_raw(f) for f in data])
         if not films:
             films = await self.es_data_source.get_films_by_ids(ids, page, size)
             if not films:
                 return None
-            await self.redis_data_source.put_films_to_cache(key, films)
+            await self.redis_data_source.put_all('movies', key, films)
         return films
 
     async def search_by_query(self, query, page, size) -> list[Film] | None:
         key = ":".join(map(str, [query, page, size]))
-        films = await self.redis_data_source.films_from_cache(key)
+        films = await self.redis_data_source.get_all('movies', key, lambda data: [Film.parse_raw(f) for f in data])
         if not films:
-            films = await self.es_data_source.get_films_by_query(query, page, size)
+            films = await self.es_data_source.get_all_by_query('movies', query, page, size, lambda data: [Film(**f) for f in data])
             if not films:
                 return None
-            await self.redis_data_source.put_films_to_cache(key, films)
+            await self.redis_data_source.put_all('movies', key, films)
         return films
 
     async def get_all(self, sort, genre, page, size) -> list[Film] | None:
         key = ":".join(map(str, [sort, genre, page, size]))
-        films = await self.redis_data_source.films_from_cache(key)
+        films = await self.redis_data_source.get_all('movies', key, lambda data: [Film.parse_raw(f) for f in data])
         if not films:
             films = await self.es_data_source.get_films_all(sort, genre, page, size)
             if not films:
                 return None
-            await self.redis_data_source.put_films_to_cache(key, films)
+            await self.redis_data_source.put_all('movies', key, films)
         return films
