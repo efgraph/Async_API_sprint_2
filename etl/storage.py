@@ -1,6 +1,7 @@
 import abc
 import json
 import os.path
+from pathlib import Path
 
 
 class BaseStorage:
@@ -16,10 +17,10 @@ class BaseStorage:
 class JsonFileStorage(BaseStorage):
     def __init__(self, file_path):
         self.file_path = file_path
-        if not os.path.exists(self.file_path):
-            file = open(self.file_path, 'w+')
-            file.write('{}')
-            file.close()
+        path = Path(self.file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open('w', encoding='utf-8') as f:
+            f.write('{}')
 
     def save_state(self, state):
         curr = self.retrieve_state()

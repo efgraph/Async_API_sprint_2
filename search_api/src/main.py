@@ -1,13 +1,9 @@
-import aioredis
 import uvicorn
-from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from api.v1 import films, persons, genres
-from core import config
-from db import redis, elastic
-from core.config import settings
+from core import config, injector
 
 app = FastAPI(
     title=config.PROJECT_NAME,
@@ -19,15 +15,12 @@ app = FastAPI(
 
 @app.on_event('startup')
 async def startup():
-    redis.redis = await aioredis.create_redis_pool((settings.redis_host, settings.redis_port), minsize=10, maxsize=20)
-    elastic.es = AsyncElasticsearch(hosts=[f'{settings.elastic_host}:{settings.elastic_port}'])
+    await injector.startup()
 
 
 @app.on_event('shutdown')
 async def shutdown():
-    redis.redis.close()
-    await redis.redis.wait_closed()
-    await elastic.es.close()
+    await injector.shutdown()
 
 
 app.include_router(films.router, prefix='/api/v1/films', tags=['films'])

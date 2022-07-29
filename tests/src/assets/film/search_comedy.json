@@ -1,0 +1,199 @@
+[
+  {
+    "id": "92ea2386-2ef1-4ba9-a390-3120a0f8aa7f",
+    "title": "Movie Star, American Style or; LSD, I Hate You",
+    "imdb_rating": "7.5",
+    "description": "Producer/director Albert Zugsmith's acid-therapy \"comedy,\" complete with a tinted trip sequence \"in hilarious LSD color.\" A suicidal film star named Honey Bunny is sent by her producer to a...",
+    "genre": [
+      "Comedy"
+    ],
+    "actors": [
+      {
+        "id": "06ebd992-1c71-46f3-a9a0-e2144a8847e7",
+        "name": "Steven Rogers"
+      },
+      {
+        "id": "13947db0-3e9f-4207-83d1-926baabc08b8",
+        "name": "Del Moore"
+      },
+      {
+        "id": "b41f90ed-5809-4b6a-993c-7ea6b340f85c",
+        "name": "T.C. Jones"
+      },
+      {
+        "id": "cb58e7ad-ac7d-4faf-8d07-e50c537a9857",
+        "name": "Frank Delfino"
+      }
+    ],
+    "director": [
+      "Albert Zugsmith"
+    ],
+    "writers": [
+      {
+        "id": "5e808349-a4c2-460c-8f2d-4169e195f8df",
+        "name": "Lulu Talmadge"
+      },
+      {
+        "id": "61f741b1-74d6-4f00-a1ff-6400b6deba45",
+        "name": "Graham Lee Mahin"
+      },
+      {
+        "id": "e9440587-9dae-48ca-bca4-6822a6835e50",
+        "name": "Albert Zugsmith"
+      }
+    ]
+  },
+  {
+    "id": "98bff7a3-0204-482b-aea5-8b4b70b68248",
+    "title": "The Southern Star",
+    "imdb_rating": "5.4",
+    "description": "Comedy adventure based on a Jules Verne novel about the ups and downs of jewel thieves in the wilds of Africa circa 1900. George Segal is the appealing hero-heel and Ursula Andress is visually stunning as the lady in the proceedings. Orson Welles has a small role.",
+    "genre": [
+      "Adventure",
+      "Comedy",
+      "Crime"
+    ],
+    "actors": [
+      {
+        "id": "097b8069-e01f-413c-9789-041e59de91e7",
+        "name": "Ian Hendry"
+      },
+      {
+        "id": "9efec49b-ae2b-45ea-bcdf-f1e929b44846",
+        "name": "Ursula Andress"
+      },
+      {
+        "id": "ba8cb08c-bafd-45a4-b830-361619ee9206",
+        "name": "Orson Welles"
+      },
+      {
+        "id": "fa5cd6d8-e79e-45b8-a672-701f0cbe888a",
+        "name": "George Segal"
+      }
+    ],
+    "director": [
+      "Orson Welles",
+      "Sidney Hayers"
+    ],
+    "writers": [
+      {
+        "id": "5e0b3eed-27c2-4b1f-9c86-1105d11ef8a4",
+        "name": "Jack Seddon"
+      },
+      {
+        "id": "aa30b9fb-545c-48cd-87ff-cd8b7fafb6ed",
+        "name": "David Pursall"
+      }
+    ]
+  },
+  {
+    "id": "f927a766-742d-4f2a-9f3b-bb6e65a0c00d",
+    "title": "Star Search",
+    "imdb_rating": "5.4",
+    "description": "Hosted by Ed McMahon, and later Martha Quinn, this show gave many young talents their first big breaks in show business as they were given the chance to compete in front of a national audience. Performance categories included singing, dancing, modeling and stand-up comedy.",
+    "genre": [
+      "Comedy",
+      "Family",
+      "Game-Show"
+    ],
+    "actors": [
+      {
+        "id": "5717859e-fe37-40fb-9e57-0f30a56ba31c",
+        "name": "Durell Coleman"
+      },
+      {
+        "id": "62df7e66-1784-4db7-bbe0-3325dc9c9def",
+        "name": "Sam Riddle"
+      },
+      {
+        "id": "94ccdf0f-a205-409b-8ace-517c91348005",
+        "name": "Arsenio Hall"
+      },
+      {
+        "id": "c6842b76-4f75-4933-931c-8d5fc2469375",
+        "name": "Ed McMahon"
+      }
+    ],
+    "director": [],
+    "writers": []
+  },
+  {
+    "id": "c321a0d6-14df-444b-bdf8-f228500c6de6",
+    "title": "The Romancing Star",
+    "imdb_rating": "6.3",
+    "description": "(Cantonese with English subtitles) Chow Yun-fat in this hilarious offbeat comedy plays Wong, a mechanic who falls for a beautiful rich girl (played by Maggie Cheung). When Wong finds out his friend also like her, he must fight him for her attention",
+    "genre": [
+      "Comedy",
+      "Romance"
+    ],
+    "actors": [
+      {
+        "id": "0a157478-62d6-4ab2-8a14-063bf885b9ec",
+        "name": "Yun-Fat Chow"
+      },
+      {
+        "id": "17d001a5-12ea-494e-a0c3-e105d4d7d857",
+        "name": "Pak-Cheung Chan"
+      },
+      {
+        "id": "253b4410-2524-4376-9720-77eb896321c9",
+        "name": "Maggie Cheung"
+      },
+      {
+        "id": "603af7b0-58c4-47e7-a01d-c2e4f1523eb8",
+        "name": "Eric Tsang"
+      }
+    ],
+    "director": [
+      "Jing Wong"
+    ],
+    "writers": [
+      {
+        "id": "1784fc3f-cd02-40ab-ae4b-800109067c3d",
+        "name": "Jing Wong"
+      }
+    ]
+  },
+  {
+    "id": "a99d6476-4b05-467d-a612-b7ebbec900dc",
+    "title": "The Muppets All-Star Comedy Gala",
+    "imdb_rating": "5.9",
+    "description": null,
+    "genre": [
+      "Comedy"
+    ],
+    "actors": [
+      {
+        "id": "2af5ed7b-138c-4bfb-931f-c376e5be73f4",
+        "name": "Eric Jacobson"
+      },
+      {
+        "id": "8776732e-91a2-4066-a871-614bbac57b12",
+        "name": "David Rudman"
+      },
+      {
+        "id": "9e013e0a-dc00-4d61-8ca3-788649f7e015",
+        "name": "Dave Goelz"
+      },
+      {
+        "id": "d2723114-44d3-45af-9b87-8b39553904b5",
+        "name": "Steve Whitmire"
+      }
+    ],
+    "director": [],
+    "writers": [
+      {
+        "id": "be814de6-7f17-4b7c-8130-a23977e335cd",
+        "name": "Mark Critch"
+      },
+      {
+        "id": "f37054a9-8ede-44ac-b9ca-871c7cf7193f",
+        "name": "Dean Jenkinson"
+      },
+      {
+        "id": "f58b9c52-3029-47a6-9dfb-02fa9c6238f0",
+        "name": "Tim McAuliffe"
+      }
+    ]
+  }
+]

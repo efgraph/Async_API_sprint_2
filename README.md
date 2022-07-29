@@ -11,6 +11,10 @@
 ##### Сервис (ETL)
 Выгружает данные из админки в в API
 
+##### Модуль с функциональными тестами
+Тесты запускаются по умолчанию вместе с проектом, но можно запустить отдельно командой<br/>
+docker-compose up --build tests
+
 ##### Swagger
 
 http://localhost/api/openapi
@@ -18,7 +22,7 @@ http://localhost/api/openapi
 ### Запуск проекта 
 
 1. Включить vpn
-2. Из корневой директории выполнить, docker-compose up
+2. Из корневой директории выполнить docker-compose up
 3. Дождаться, когда в логах появится таблица с тестами
 
 **Перезапуск проекта**
@@ -29,7 +33,7 @@ http://localhost/api/openapi
 
 ### Ссылка на репозиторий
 
-https://github.com/efgraph/Async_API_sprint_1
+https://github.com/efgraph/Async_API_sprint_2
 
 
 

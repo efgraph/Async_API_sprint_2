@@ -1,11 +1,12 @@
 from http import HTTPStatus
 
+from core.injector import get_person_service, get_film_service
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from core.error_message import PERSON_NOT_FOUND, PERSONS_NOT_FOUND, FILMS_NOT_FOUND
-from services.film import FilmService, get_film_service
+from services.film import FilmService
 from models.models import Person, Film
-from services.person import PersonService, get_person_service
+from services.person import PersonService
 
 router = APIRouter()
 

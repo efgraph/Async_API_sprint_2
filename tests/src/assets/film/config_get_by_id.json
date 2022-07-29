@@ -1,0 +1,16 @@
+[
+    {
+        "name" : "get_film_by_id",
+        "film_id" : "00af52ec-9345-4d66-adbe-50eb917f463a",
+        "parameter" : "",
+        "status" : 200,
+        "body" : "get_by_id.json"
+    },
+    {
+        "name" : "get_film_by_id_not_found",
+        "film_id" : "not_found",
+        "parameter" : "",
+        "status" : 404,
+        "body" : "get_by_id_not_found.json"
+    }
+]

@@ -1,10 +1,11 @@
 from http import HTTPStatus
 
+from core.injector import get_genre_service
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 
 from core.error_message import GENRE_NOT_FOUND, GENRES_NOT_FOUND
 from models.models import Genre
-from services.genre import GenreService, get_genre_service
+from services.genre import GenreService
 
 router = APIRouter()
 

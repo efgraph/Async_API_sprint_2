@@ -1,0 +1,39 @@
+[
+  {
+    "id": "496f504e-20fa-4dfd-b4cb-c7c4ef636e07",
+    "title": "Rock Star",
+    "imdb_rating": "6.3",
+    "description": "Chris Cole was born to rock. His longtime girlfriend Emily believes his talent could take him all the way - but Chris worships at the altar of Bobby Beers, the fiery frontman for heavy metal legends Steel Dragon. By day, Chris still lives at home with his parents and spends his days repairing copy machines. But when Chris takes the stage, fronting Pennsylvania's premiere Steel Dragon tribute band, all of that disappears. Chris Cole is Bobby Beers - mesmerizing audiences with his perfect imitation of Beers' electrifying vocals. The night his bandmates boot him out of the group, Chris is devastated - until an unexpected phone call changes his life forever: He, Chris Cole, has been tapped to replace Bobby Beers as the lead singer of Steel Dragon. In an instant, Chris rockets to the dizzying heights of sudden stardom, rising from devotee to icon, from rock fan to rock god - the wanna-be who got to be. So what happens when an average guy gets everything he wants - and discovers it's not enough?",
+    "genre": [
+      "Drama",
+      "Music"
+    ],
+    "actors": [
+      {
+        "id": "25423597-4cb0-4e9f-a9aa-86b1fd3aadee",
+        "name": "Mark Wahlberg"
+      },
+      {
+        "id": "9ea3f318-841d-44fc-afba-21d154eb99be",
+        "name": "Jennifer Aniston"
+      },
+      {
+        "id": "b2362da9-6c24-422c-8085-01851ba79297",
+        "name": "Jason Bonham"
+      },
+      {
+        "id": "fc616cc0-3961-44ff-ac27-9bfdcc28917f",
+        "name": "Dominic West"
+      }
+    ],
+    "director": [
+      "Stephen Herek"
+    ],
+    "writers": [
+      {
+        "id": "8c0eb98b-4020-4012-914e-533939ddafde",
+        "name": "John Stockwell"
+      }
+    ]
+  }
+]

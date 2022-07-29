@@ -1,10 +1,11 @@
 from http import HTTPStatus
 
+from core.injector import get_film_service
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from core.error_message import FILM_NOT_FOUND, FILMS_NOT_FOUND
 from models.models import Film
-from services.film import FilmService, get_film_service
+from services.film import FilmService
 
 router = APIRouter()
 

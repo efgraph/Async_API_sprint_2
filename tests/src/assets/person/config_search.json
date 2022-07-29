@@ -1,0 +1,26 @@
+[
+  {
+    "name": "empty_search",
+    "parameter": "",
+    "status": 200,
+    "body": "get_arbitrary.json"
+  },
+  {
+    "name": "search_jennifer",
+    "parameter": {
+      "query": "Jennifer"
+    },
+    "status": 200,
+    "body": "search_jennifer.json"
+  },
+  {
+    "name": "search_tom",
+    "parameter": {
+      "query": "Tom",
+      "page[number]": "2",
+      "page[size]": "5"
+    },
+    "status": 200,
+    "body": "search_tom.json"
+  }
+]

@@ -1,104 +1,64 @@
-import json
-from functools import lru_cache
-
-from aioredis import Redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-
-from db.elastic import get_elastic
-from db.redis import get_redis
+from abc import ABC, abstractmethod
+from core.datasource.elastic_data_source import ESDataSource
+from core.datasource.redis_data_source import RedisDataSource
 from models.models import Film
 
 
-class FilmService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
-        self.elastic = elastic
+class FilmService(ABC):
+    @abstractmethod
+    async def get_by_id(self, film_id: str) -> Film | None:
+        pass
+
+    @abstractmethod
+    async def search_by_ids(self, person_id, ids, page, size) -> list[Film] | None:
+        pass
+
+    @abstractmethod
+    async def search_by_query(self, query, page, size) -> list[Film] | None:
+        pass
+
+
+class FilmServiceImpl(FilmService):
+    def __init__(self, redis_data_source: RedisDataSource, es_data_source: ESDataSource):
+        self.redis_data_source = redis_data_source
+        self.es_data_source = es_data_source
 
     async def get_by_id(self, film_id: str) -> Film | None:
-        film = await self._film_from_cache(film_id)
+        film = await self.redis_data_source.film_from_cache(film_id)
         if not film:
-            film = await self._get_film_from_elastic(film_id)
+            film = await self.es_data_source.get_film_from_elastic(film_id)
             if not film:
                 return None
-            await self._put_film_to_cache(film)
+            await self.redis_data_source.put_film_to_cache(film)
 
         return film
 
-    async def search_by_ids(self, person_id, ids, page, size):
+    async def search_by_ids(self, person_id, ids, page, size) -> list[Film] | None:
         key = ":".join(map(str, [person_id, page, size]))
-        films = await self._films_from_cache(key)
+        films = await self.redis_data_source.films_from_cache(key)
         if not films:
-            body = {"query": {"ids": {"values": ids}}}
-            result = await self.elastic.search(index="movies", body=body, from_=page * size, size=size)
-            source = [hit['_source'] for hit in result['hits']['hits']]
-            films = [Film(**f) for f in source]
+            films = await self.es_data_source.get_films_by_ids(ids, page, size)
             if not films:
                 return None
-            await self._put_films_to_cache(key, films)
+            await self.redis_data_source.put_films_to_cache(key, films)
         return films
 
-    async def search_by_query(self, query, page, size):
+    async def search_by_query(self, query, page, size) -> list[Film] | None:
         key = ":".join(map(str, [query, page, size]))
-        films = await self._films_from_cache(key)
+        films = await self.redis_data_source.films_from_cache(key)
         if not films:
-            body = {"query": {"query_string": {"query": query}}}
-            result = await self.elastic.search(index="movies", body=body, from_=page * size, size=size)
-            source = [hit['_source'] for hit in result['hits']['hits']]
-            films = [Film(**f) for f in source]
+            films = await self.es_data_source.get_films_by_query(query, page, size)
             if not films:
                 return None
-            await self._put_films_to_cache(key, films)
+            await self.redis_data_source.put_films_to_cache(key, films)
         return films
 
-    async def get_all(self, sort, genre, page, size):
+    async def get_all(self, sort, genre, page, size) -> list[Film] | None:
         key = ":".join(map(str, [sort, genre, page, size]))
-        films = await self._films_from_cache(key)
+        films = await self.redis_data_source.films_from_cache(key)
         if not films:
-            body = {"query": {"match_all": {}}}
-            if sort:
-                body["sort"] = [{sort: {"order": "desc"}}]
-            if genre:
-                body["query"] = {"bool": {"must": [{"match": {"genre": genre}}]}}
-            result = await self.elastic.search(index="movies", body=body, from_=page * size, size=size)
-            source = [hit['_source'] for hit in result['hits']['hits']]
-            films = [Film(**f) for f in source]
+            films = await self.es_data_source.get_films_all(sort, genre, page, size)
             if not films:
                 return None
-            await self._put_films_to_cache(key, films)
+            await self.redis_data_source.put_films_to_cache(key, films)
         return films
-
-    async def _get_film_from_elastic(self, film_id: str) -> Film | None:
-        try:
-            doc = await self.elastic.get('movies', film_id)
-        except NotFoundError:
-            return None
-        return Film(**doc['_source'])
-
-    async def _film_from_cache(self, film_id: str) -> Film | None:
-        data = await self.redis.hmget("movies", film_id)
-        if data in [None, [None]]:
-            return None
-        film = Film.parse_raw(data[0])
-        return film
-
-    async def _films_from_cache(self, key: str) -> list[Film]:
-        data = await self.redis.hmget("movies", key)
-        if data in [None, [None]]:
-            return None
-        persons = [Film.parse_raw(f) for f in json.loads(data[0])]
-        return persons
-
-    async def _put_film_to_cache(self, film: Film):
-        await self.redis.hmset("movies", film.id, film.json())
-
-    async def _put_films_to_cache(self, key: str, films: list[Film]):
-        await self.redis.hmset("movies", key, json.dumps([f.json() for f in films]))
-
-
-@lru_cache()
-def get_film_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
-) -> FilmService:
-    return FilmService(redis, elastic)

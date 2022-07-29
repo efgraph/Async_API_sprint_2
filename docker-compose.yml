@@ -4,6 +4,8 @@ services:
   postgres:
     image: postgres:14.4
     restart: always
+    logging:
+      driver: "none"
     env_file:
       - ./docker/pg-variables.env
 
@@ -20,9 +22,12 @@ services:
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_PASSWORD=admin
       - DJANGO_SUPERUSER_EMAIL=admin@admin.com
+    logging:
+      driver: "none"
 
   nginx:
     image: nginx:1.23.0
+    restart: always
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx:/etc/nginx/conf.d:ro
@@ -40,6 +45,8 @@ services:
     environment:
       - discovery.type=single-node
       - cluster.routing.allocation.disk.threshold_enabled=false
+    logging:
+      driver: "none"
 
   etl:
     build: ./etl
@@ -49,8 +56,6 @@ services:
     env_file:
       - ./docker/pg-variables.env
     command: /opt/etl/docker-entrypoint.sh
-    volumes:
-      - ./etl/local_storage/:/opt/etl/local_storage/
     depends_on:
       - es
       - service
@@ -67,10 +72,20 @@ services:
       - ELASTIC_PORT=9200
       - REDIS_HOST=cache
       - REDIS_PORT=6379
+    logging:
+      driver: "none"
     depends_on:
       - postgres
       - etl
       - es
       - cache
+
+  tests:
+    build: ./tests
+    entrypoint: /opt/tests/docker-entrypoint.sh
+    depends_on:
+      - search_api
+      - cache
+      - es
 
 
